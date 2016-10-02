@@ -1,0 +1,20 @@
+.PHONY: build publish
+
+# Bucket defaults
+S3_OBJECT_VERSION = $$(aws s3api list-object-versions --bucket $(S3_BUCKET) --prefix $(FUNCTION_NAME) | jq '.Versions[] | select(.IsLatest==true) | .VersionId' -r)
+
+
+# Cosmetics
+RED := "\e[1;31m"
+YELLOW := "\e[1;33m"
+NC := "\e[0m"
+
+# Shell Functions
+INFO := @bash -c '\
+  printf $(YELLOW); \
+  echo "=> $$1"; \
+  printf $(NC)' SOME_VALUE
+WARNING := @bash -c '\
+  printf $(RED); \
+  echo "WARNING: $$1"; \
+  printf $(NC)' SOME_VALUE
