@@ -71,9 +71,9 @@ def poll(task):
   raise Exception("The tasks did not complete in the specified timeout of %s seconds", task['Timeout'])
 
 def task_result_handler(func):
-    def handle_task_result(*args, **kwargs):
+    def handle_task_result(event, context):
       try:
-        func(*args, **kwargs)
+        func(event, context)
       except EcsTaskFailureError as e:
         return {"Status": "FAILED", "Reason": "A task failure occurred: %s" % e.failures}
       except EcsTaskExitCodeError as e:
@@ -84,26 +84,31 @@ def task_result_handler(func):
         return {"Status": "FAILED", "Reason": "An exception occcured: %s" % e}
     return handle_task_result
 
+def start_and_poll(task):
+  task['CreationTime'] = int(time.time())
+  task['TaskResult'] = start(task)
+  task['TaskResult'] = poll(task)
+  log.info("Task completed with result: %s" % task['TaskResult'])
+
 # Event handlers
+@task_result_handler
 @handler.create
-# @task_result_handler
 def handle_create(event, context):
-  log.info('Received event %s' % str(event))
+  log.info('Received create event %s' % str(event))
   task = validate(event.get('ResourceProperties'))
   task['StartedBy'] = get_task_id(event.get('StackId'), event.get('LogicalResourceId'))
+  log.info('Received task %s' % str(task))
   if task['Count'] > 0:
-    task['CreationTime'] = int(time.time())
-    task['TaskResult'] = start(task)
-    task['TaskResult'] = poll(task)
-    log.info("Task completed with result: %s" % task['TaskResult'])
+    start_and_poll(task)
   return {"Status": "SUCCESS", "PhysicalResourceId": task['StartedBy']}
 
+@task_result_handler
 @handler.update
-# @task_result_handler
 def handle_update(event, context):
-  log.info('Received event %s' % str(event))
+  log.info('Received update event %s' % str(event))
   task = validate(event.get('ResourceProperties'))
   task['StartedBy'] = get_task_id(event.get('StackId'), event.get('LogicalResourceId'))
+  log.info('Received task %s' % str(task))
   update_criteria = task['UpdateCriteria']
   if task['RunOnUpdate'] and task['Count'] > 0:
     old_task = validate(event.get('OldResourceProperties'))
@@ -111,16 +116,15 @@ def handle_update(event, context):
       old_values = get_task_definition_values(old_task['TaskDefinition'],task['UpdateCriteria'])
       new_values = get_task_definition_values(task['TaskDefinition'],task['UpdateCriteria'])
       if old_values != new_values:
-        task['CreationTime'] = int(time.time())
-        task['TaskResult'] = start(task)
-        task['TaskResult'] = poll(task)
-        log.info("Task completed with result: %s" % task['TaskResult'])
+        start_and_poll(task)
+    else:
+      start_and_poll(task)
   return {"Status": "SUCCESS", "PhysicalResourceId": task['StartedBy']}
   
+@task_result_handler
 @handler.delete
-# @task_result_handler
 def handle_delete(event, context):
-  log.info('Received event %s' % str(event))
+  log.info('Received delete event %s' % str(event))
   task = validate(event.get('ResourceProperties'))
   task_id = get_task_id(event.get('StackId'), event.get('LogicalResourceId'))
   tasks = task_mgr.list_tasks(cluster=task['Cluster'], startedBy=task_id)
