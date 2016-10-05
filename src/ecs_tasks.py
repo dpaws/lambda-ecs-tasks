@@ -73,7 +73,7 @@ def poll(task):
 def task_result_handler(func):
     def handle_task_result(event, context):
       try:
-        func(event, context)
+        return func(event, context)
       except EcsTaskFailureError as e:
         return {"Status": "FAILED", "Reason": "A task failure occurred: %s" % e.failures}
       except EcsTaskExitCodeError as e:
@@ -91,8 +91,8 @@ def start_and_poll(task):
   log.info("Task completed with result: %s" % task['TaskResult'])
 
 # Event handlers
-@task_result_handler
 @handler.create
+@task_result_handler
 def handle_create(event, context):
   log.info('Received create event %s' % str(event))
   task = validate(event.get('ResourceProperties'))
@@ -102,8 +102,8 @@ def handle_create(event, context):
     start_and_poll(task)
   return {"Status": "SUCCESS", "PhysicalResourceId": task['StartedBy']}
 
-@task_result_handler
 @handler.update
+@task_result_handler
 def handle_update(event, context):
   log.info('Received update event %s' % str(event))
   task = validate(event.get('ResourceProperties'))
@@ -121,8 +121,8 @@ def handle_update(event, context):
       start_and_poll(task)
   return {"Status": "SUCCESS", "PhysicalResourceId": task['StartedBy']}
   
-@task_result_handler
 @handler.delete
+@task_result_handler
 def handle_delete(event, context):
   log.info('Received delete event %s' % str(event))
   task = validate(event.get('ResourceProperties'))
