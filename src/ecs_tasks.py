@@ -1,13 +1,13 @@
 import time
 import logging
-import cfn_resource
+from cfn_lambda_handler import Handler
 from hashlib import md5
 from ecs import EcsTaskManager, EcsTaskFailureError, EcsTaskExitCodeError
 from validation import get_validator, validate
 from voluptuous import MultipleInvalid, Invalid
 
 # Set handler as the entry point for Lambda
-handler = cfn_resource.Resource()
+handler = Handler()
 
 # Configure logging
 log = logging.getLogger()
@@ -85,7 +85,6 @@ def task_result_handler(func):
     return handle_task_result
 
 def start_and_poll(task):
-  task['CreationTime'] = int(time.time())
   task['TaskResult'] = start(task)
   task['TaskResult'] = poll(task)
   log.info("Task completed with result: %s" % task['TaskResult'])
@@ -96,6 +95,7 @@ def start_and_poll(task):
 def handle_create(event, context):
   log.info('Received create event %s' % str(event))
   task = validate(event.get('ResourceProperties'))
+  event['Timeout'] = event.get('Timeout') or task['Timeout']
   task['StartedBy'] = get_task_id(event.get('StackId'), event.get('LogicalResourceId'))
   log.info('Received task %s' % str(task))
   if task['Count'] > 0:
@@ -107,6 +107,7 @@ def handle_create(event, context):
 def handle_update(event, context):
   log.info('Received update event %s' % str(event))
   task = validate(event.get('ResourceProperties'))
+  event['Timeout'] = event.get('Timeout') or task['Timeout']
   task['StartedBy'] = get_task_id(event.get('StackId'), event.get('LogicalResourceId'))
   log.info('Received task %s' % str(task))
   update_criteria = task['UpdateCriteria']
