@@ -7,7 +7,8 @@ include Makefile.settings
 
 build: clean
 	@ ${INFO} "Building $(FUNCTION_NAME).zip..."
-	@ cd src && pip install -r requirements.txt -t . --upgrade
+	@ rm -rf src/vendor
+	@ cd src && pip install -t vendor/ -r requirements.txt --upgrade
 	@ mkdir -p target
 	@ cd src && zip -9 -r ../target/$(FUNCTION_NAME).zip * -x *.pyc
 	@ ${INFO} "Built target/$(FUNCTION_NAME).zip"
@@ -19,5 +20,5 @@ publish: build
 	@ ${INFO} "S3 Object Version: $(S3_OBJECT_VERSION)"
 
 clean:
-	@ rm -rf target
+	@ rm -rf src/*.pyc src/vendor target
 	@ ${INFO} "Removed all distributions"

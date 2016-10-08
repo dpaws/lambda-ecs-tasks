@@ -1,9 +1,3 @@
 target
 *.pyc
-src/*
-!src/requirements.txt
-!src/setup.cfg
-!src/cfn_lambda_handler.py
-!src/ecs.py
-!src/ecs_tasks.py
-!src/validation.py
+src/vendor

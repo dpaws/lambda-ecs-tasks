@@ -23,8 +23,8 @@ def get_validator():
     Required('Container'): Any(str, unicode),
     Required('EnvironmentKeys'): All(list)
   })]),
-  Required('Timeout', default=290): All(ToInt, Range(min=10, max=290)),
-  Required('PollInterval', default=30): All(ToInt, Range(min=10, max=60)),
+  Required('Timeout', default=290): All(ToInt, Range(min=10)),
+  Required('PollInterval', default=10): All(ToInt, Range(min=10, max=60)),
   Required('Overrides', default=dict()): All(dict),
   Required('Instances', default=list()): All(list, Length(max=10)),
 }, extra=True)
