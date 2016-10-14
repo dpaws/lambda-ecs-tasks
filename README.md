@@ -4,6 +4,11 @@ This repository defines the Lamdba function `cfnEcsTasks`.
 
 This function is a CloudFormation custom resource that runs ECS tasks and polls the task until successful completion or failure.  The function will report both ECS task failures and any task that exits with a non-zero code as a failure.
 
+## Prerequisites
+
+- [AWS CLI](https://aws.amazon.com/cli/)
+- [jq](https://stedolan.github.io/jq/) 
+
 ## Build Instructions
 
 Any dependencies need to defined in `src/requirements.txt`.  Note that you do not need to include `boto3`, as this is provided by AWS for Python Lambda functions.
@@ -39,7 +44,7 @@ If you want to change the function name, you can either update the `FUNCTION_NAM
 
 ## Publishing the Function
 
-When you publish the function, you are simply copying the built ZIP package to an S3 bucket.  Before you can do this, you must ensure your environment is configured correctly with appropriate AWS credentials and/or profiles.
+When you publish the function, you are simply copying the built ZIP package to an S3 bucket.  Before you can do this, you must ensure you have created the S3 bucket and your environment is configured correctly with appropriate AWS credentials and/or profiles.
 
 To specify the S3 bucket that the function should be published to, you can either configure the `S3_BUCKET` setting in the `Makefile` or alternatively configure an environment variable of the same name to override the default S3 bucket name.
 
