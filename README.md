@@ -1,8 +1,8 @@
-# CloudFormation ECS Tasks Function
+# CloudFormation ECS Task Runner Custom Resource
 
-This repository defines the Lamdba function `cfnEcsTasks`.
+This repository defines the Lamdba function `cfnEcsTasks`.  
 
-This function runs ECS tasks and polls the task until successful completion or failure.
+This function is a CloudFormation custom resource that runs ECS tasks and polls the task until successful completion or failure.  The function will report both ECS task failures and any task that exits with a non-zero code as a failure.
 
 ## Build Instructions
 
@@ -17,12 +17,14 @@ This will create the necessary dependencies in the `src` folder and create a ZIP
 ```
 $ make build
 => Building cfnEcsTasks.zip...
-Collecting cfn_resource (from -r requirements.txt (line 1))
-Installing collected packages: cfn-resource
-Successfully installed cfn-resource-0.2.2
-updating: cfn_resource-0.2.2.dist-info/ (stored 0%)
-updating: cfn_resource.py (deflated 67%)
-updating: cfn_resource.pyc (deflated 62%)
+Collecting cfn_lambda_handler (from -r requirements.txt (line 1))
+Installing collected packages: cfn-lambda-handler
+...
+...
+Successfully installed cfn-lambda-handler-1.0.0
+updating: vendor/cfn_lambda_handler_1.0.0.dist-info/ (stored 0%)
+updating: vendor/cfn_lambda_handler.py (deflated 67%)
+updating: vendor/cfn_lambda_handler.pyc (deflated 62%)
 updating: requirements.txt (stored 0%)
 updating: setup.cfg (stored 0%)
 updating: ecs_tasks.py (deflated 63%)
@@ -37,11 +39,11 @@ If you want to change the function name, you can either update the `FUNCTION_NAM
 
 ## Publishing the Function
 
-When you publish the function, you are simply copying the built ZIP package to an S3 bucket.  Before you can do this, you must ensure your enviornment is configured correctly with appropriate AWS credentials and/or profiles.
+When you publish the function, you are simply copying the built ZIP package to an S3 bucket.  Before you can do this, you must ensure your environment is configured correctly with appropriate AWS credentials and/or profiles.
 
 To specify the S3 bucket that the function should be published to, you can either configure the `S3_BUCKET` setting in the `Makefile` or alternatively configure an environment variable of the same name to override the default S3 bucket name.
 
-> [Versioning](http://docs.aws.amazon.com/AmazonS3/latest/dev/Versioning.html) must be enabled on the S3 bucket
+> [Versioning](http://docs.aws.amazon.com/AmazonS3/latest/dev/Versioning.html) should be enabled on the S3 bucket
 
 To deploy the built ZIP package:
 
@@ -91,8 +93,8 @@ The following custom resource calls this Lambda function when the resource is cr
               - manage.py
               - migrate
             environment:
-              - name SOME_VAR
-                value
+              - name: SOME_VAR
+                value: SOME_VALUE
       Instances:              # Optional list of container instances to run the task on
         - arn:aws:ecs:ap-southeast-2:012345678901:container-instance/9d8698b5-5477-4b8b-bb63-dfd1e140b0d8
 
